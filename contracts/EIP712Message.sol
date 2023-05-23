@@ -3,8 +3,7 @@ pragma solidity 0.8.20;
 
 import "../node_modules/@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 import "../node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-// Uncomment this line to use console.log
-import "hardhat/console.sol";
+
 
 contract EIP712Message is EIP712 {
 
@@ -110,7 +109,6 @@ contract EIP712Message is EIP712 {
         bytes32 digest = keccak256(
             abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, hash(message))
         );
-        console.log(ecrecover(digest, v, r, s));
         return ecrecover(digest, v, r, s);
     }
 
