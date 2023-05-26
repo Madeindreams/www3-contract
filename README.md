@@ -1,7 +1,13 @@
 # www3-contract
-Smart contract for WWW3
+Smart contract for the worldwide web3
 
+## Setup
 
-## start a fork of mainnet
+    yarn install
 
-    yarn hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<KEY>
+## start a local node
+
+1.     hardhat node
+2.     hardhat compile
+3.     hardhat test
+4.     hardhat deploy-www3

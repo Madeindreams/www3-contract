@@ -7,11 +7,10 @@ import "./EIP712Message.sol";
 
 contract WorldWideWeb3 is EIP712Message, Ownable{
 
-
-    Message[] public messages;
-   
     mapping(address => uint256) public frensTrust;
     mapping(uint256 => uint256) public tierPrice;
+
+    event Signer(address account, uint256 tier);
 
     constructor(string memory name, string memory version) 
         EIP712Message(name, version){
@@ -36,18 +35,8 @@ contract WorldWideWeb3 is EIP712Message, Ownable{
         require(block.timestamp < deadline, "passed deadline");
 
         frensTrust[msg.sender] += msg.value;
-    
-        messages.push( 
-            Message({
-                message: message,
-                latitude: latitude,
-                longitude: longitude,
-                tier: tier,
-                time: block.timestamp
-            })
-        );
 
-
+        emit Signer(msg.sender, tier);
 
     }
 

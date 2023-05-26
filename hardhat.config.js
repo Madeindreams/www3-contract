@@ -1,8 +1,9 @@
 require("@nomicfoundation/hardhat-toolbox");
 require('dotenv').config();
+
+require("./tasks/deployment.js");
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-
     defaultNetwork: "hardhat",
   networks: {
       hardhat: {
@@ -11,17 +12,18 @@ module.exports = {
           interval: 5000
         },
           forking: {
-           url: "https://eth-mainnet.alchemyapi.io/v2/"+process.env.ALCHEMY_API_KEY,
-           //url: "http://192.168.2.16:8545",
-          },
-      },
+           url: "https://eth-mainnet.alchemyapi.io/v2/"+process.env.ALCHEMY_API_KEY
+          }
+      }
     },
-
     paths: {
     sources: "./contracts",
     tests: "./test",
-    artifacts: "./artifacts",
-  
+    artifacts: "./artifacts"
 },
-  solidity: "0.8.20",
+    etherscan: {
+        apiKey: process.env.ETHERSCAN_API_KEY,
+
+    },
+  solidity: "0.8.20"
 };
