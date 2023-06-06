@@ -16,9 +16,10 @@ describe("WorldWideWeb3 Deployment", function () {
         // Contracts are deployed using the first signer/account by default
         const provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
         const owner = await new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-        const WWW3 = await new  ethers.ContractFactory(contract.abi, contract.bytecode,owner);
-        const www3 = await WWW3.deploy(name, version);
-        return { www3, owner, provider};
+        const validator = await new ethers.Wallet(process.env.VALIDATOR_KEY, provider);
+        const WWW3 = await new  ethers.ContractFactory(contract.abi, contract.bytecode, owner);
+        const www3 = await WWW3.deploy(name, version, validator.address, "IDFI", "IDFI");
+        return { www3, owner, validator, provider};
     }
 
     describe("Deployment", async function () {
@@ -30,7 +31,7 @@ describe("WorldWideWeb3 Deployment", function () {
         })
 
         it("Should sign a valid message", async function () {
-            const {owner, www3, provider} = await loadFixture(
+            const {owner, www3, validator, provider} = await loadFixture(
                 deployMaster
             );
 
@@ -82,6 +83,11 @@ describe("WorldWideWeb3 Deployment", function () {
                 typedData.types,
                 typedData.message)
 
+            const validatorSignature = await validator.signTypedData(
+                typedData.domain,
+                typedData.types,
+                typedData.message)
+
             let recovered = ethers.verifyTypedData(typedData.domain, typedData.types, typedData.message, signature)
             expect(recovered).to.equal(owner.address)
 
@@ -94,7 +100,7 @@ describe("WorldWideWeb3 Deployment", function () {
 
             //console.log("Gas Estimate:", gasLimit.toString());
 
-            const tx = await www3.submitMessage(message, latitude, longitude, time, tier, signature, {value: valueT1})
+            const tx = await www3.submitMessage(message, latitude, longitude, time, tier, signature, validatorSignature, {value: valueT1})
             const txReceipt = await tx.wait(1)
             expect(txReceipt.status).to.equal(1)
 

@@ -2,6 +2,7 @@ require("@nomicfoundation/hardhat-toolbox");
 require('dotenv').config();
 
 require("./tasks/deployment.js");
+require("./tasks/sign.js");
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
     defaultNetwork: "hardhat",

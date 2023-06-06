@@ -3,20 +3,33 @@ pragma solidity 0.8.20;
 
 import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import "./EIP712Message.sol";
+import "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 
-contract WorldWideWeb3 is EIP712Message, Ownable{
+contract WorldWideWeb3 is  Ownable, ERC20, EIP712Message{
+
+    address public validator;
 
     mapping(address => uint256) public frensTrust;
     mapping(uint256 => uint256) public tierPrice;
 
     event Signer(address account, uint256 tier);
 
-    constructor(string memory name, string memory version) 
-        EIP712Message(name, version){
+    constructor(
+        string memory _name,
+        string memory _version,
+        address _validator,
+        string memory _tokenName,
+        string memory _tokenSymbol
+    )
+        EIP712Message(_name, _version)
+        ERC20(_tokenName, _tokenSymbol){
+
             tierPrice[1] = 3000000000000000;
             tierPrice[2] = 30000000000000000;
             tierPrice[3] = 300000000000000000;
+
+            validator = _validator;
     }
 
     function submitMessage(
@@ -25,13 +38,13 @@ contract WorldWideWeb3 is EIP712Message, Ownable{
         string memory longitude,
         uint256 deadline,
         uint256 tier,
-        bytes memory signature 
+        bytes memory signature,
+        bytes memory validatorSignature
     ) public payable {
-
-
-        require(validateMessage(message, latitude, longitude, deadline, tier, signature) == msg.sender,"Invalid signature");
+        require(validateMessage(message, latitude, longitude, deadline, tier, signature) == msg.sender, "Invalid signature");
+        require(validateMessage(message, latitude, longitude, deadline, tier, validatorSignature) == validator, "Invalid validator signature");
         require(tier > 0 && tier < 4, "invalid tier");
-        require(msg.value == tierPrice[tier],"incorect price for tier");
+        require(msg.value == tierPrice[tier],"incorrect price for tier");
         require(block.timestamp < deadline, "passed deadline");
 
         frensTrust[msg.sender] += msg.value;
