@@ -9,11 +9,14 @@ import "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract WorldWideWeb3 is  Ownable, ERC20, EIP712Message{
 
     address public validator;
+    bool public mintStarted;
 
     mapping(address => uint256) public frensTrust;
     mapping(uint256 => uint256) public tierPrice;
 
     event Signer(address account, uint256 tier);
+    event Minter(address account, uint256 amount);
+    event MintStarted(bool started);
 
     constructor(
         string memory _name,
@@ -44,13 +47,33 @@ contract WorldWideWeb3 is  Ownable, ERC20, EIP712Message{
         require(validateMessage(message, latitude, longitude, deadline, tier, signature) == msg.sender, "Invalid signature");
         require(validateMessage(message, latitude, longitude, deadline, tier, validatorSignature) == validator, "Invalid validator signature");
         require(tier > 0 && tier < 4, "invalid tier");
-        require(msg.value == tierPrice[tier],"incorrect price for tier");
         require(block.timestamp < deadline, "passed deadline");
 
-        frensTrust[msg.sender] += msg.value;
+        if(!mintStarted){
+            require(msg.value == tierPrice[tier],"incorrect price for tier");
+            frensTrust[msg.sender] += msg.value;
+        } else {
+            _burn(msg.sender, tierPrice[tier]);
+        }
 
         emit Signer(msg.sender, tier);
+    }
 
+    function startMint() public onlyOwner {
+        mintStarted = true;
+
+        emit MintStarted(mintStarted);
+    }
+
+
+    function mintTrust() public {
+        address recipient = _msgSender();
+        require(mintStarted, "Mint not started yet");
+        uint amountToMint = frensTrust[recipient];
+        frensTrust[recipient] = 0;
+        _mint(recipient, amountToMint);
+
+        emit Minter(recipient, amountToMint);
     }
 
 }

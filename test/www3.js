@@ -66,7 +66,7 @@ describe("WorldWideWeb3 Deployment", function () {
                 domain: {
                     name: name,
                     version: version,
-                    chainId: 31337,
+                    chainId: chainID.toString(),
                     verifyingContract: www3.target,
                 },
                 message: {
@@ -105,5 +105,87 @@ describe("WorldWideWeb3 Deployment", function () {
             expect(txReceipt.status).to.equal(1)
 
         });
+
+        it("Should start the mint", async function () {
+            const {owner, www3, validator, provider} = await loadFixture(
+                deployMaster
+            );
+            const tx = await www3.startMint()
+            await tx.wait(1)
+            const mintStarted = await www3.mintStarted()
+            expect(mintStarted).to.equal(true)
+        })
+
+
+        it("Should sign, start mint, mint, sign again", async function () {
+            const {owner, www3, validator, provider} = await loadFixture(
+                deployMaster
+            );
+
+
+            const tx1 = await www3.mintTrust()
+            await tx1.wait(1)
+
+            // Get the current time
+            const currentTime = new Date();
+
+            // Add 5 minutes to the current time
+            const futureTime = new Date(currentTime.getTime() + 5 * 60000); // 60000 milliseconds in a minute
+            const epochTime = Math.floor(futureTime.getTime() / 1000);
+            const message = "My cool message"
+            const latitude = "117.0"
+            const longitude = "49.0"
+            const tier = "1"
+            const time = epochTime
+            const valueT1 = "3000000000000000"
+            const chainID = await www3._getChainId()
+
+
+            // sign the message data
+            const typedData = {
+                types: {
+                    Message: [
+                        {name: "message", type: "string"},
+                        {name: "latitude", type: "string"},
+                        {name: "longitude", type: "string"},
+                        {name: "tier", type: "uint256"},
+                        {name: "time", type: "uint256"},
+                    ],
+                },
+                primaryType: "Message",
+                domain: {
+                    name: name,
+                    version: version,
+                    chainId: chainID.toString(),
+                    verifyingContract: www3.target,
+                },
+                message: {
+                    message,
+                    latitude,
+                    longitude,
+                    tier,
+                    time
+                },
+            };
+
+            const signature = await owner.signTypedData(
+                typedData.domain,
+                typedData.types,
+                typedData.message)
+
+            const validatorSignature = await validator.signTypedData(
+                typedData.domain,
+                typedData.types,
+                typedData.message)
+
+
+            const tx = await www3.submitMessage(message, latitude, longitude, time, tier, signature, validatorSignature, {value: valueT1})
+            const txReceipt = await tx.wait(1)
+            expect(txReceipt.status).to.equal(1)
+
+        })
+
+
+
     })
 });
