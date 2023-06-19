@@ -14,7 +14,7 @@ contract WorldWideWeb3 is  Ownable, ERC20, EIP712Message{
     mapping(address => uint256) public frensTrust;
     mapping(uint256 => uint256) public tierPrice;
 
-    event Signer(address account, uint256 tier);
+    event Signer(address account, uint256 tier, bytes signature);
     event Minter(address account, uint256 amount);
     event MintStarted(bool started);
 
@@ -56,7 +56,7 @@ contract WorldWideWeb3 is  Ownable, ERC20, EIP712Message{
             _burn(msg.sender, tierPrice[tier]);
         }
 
-        emit Signer(msg.sender, tier);
+        emit Signer(msg.sender, tier, signature);
     }
 
     function startMint() public onlyOwner {

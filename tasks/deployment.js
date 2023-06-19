@@ -15,6 +15,7 @@ task(
         const owner = await new ethers.Wallet(process.env.PRIVATE_KEY, provider);
             const validator = await new ethers.Wallet(process.env.VALIDATOR_KEY, provider);
         const WWW3 = await new  ethers.ContractFactory(contract.abi, contract.bytecode,owner);
+        console.log(validator.address)
         const www3 = await WWW3.deploy(name, version, validator.address, tokenName, tokenSymbol);
         const receipt = await www3.deploymentTransaction();
         console.log("www3 deployed:", receipt);
