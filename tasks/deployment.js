@@ -17,9 +17,9 @@ task(
     "deploy-www3",
     "Deploy The contract",
     async (_, { network }) => {
-        const provider = new ethers.JsonRpcProvider(process.env.LOCAL_RPC);
-        const owner = new NonceManager(new ethers.Wallet(process.env.LOCAL_OWNER_PRIVATE_KEY, provider));
-        const validator = new ethers.Wallet(process.env.LOCAL_VALIDATOR_PRIVATE_KEY, provider);
+        const provider = new ethers.JsonRpcProvider(process.env.RPC);
+        const owner = new NonceManager(new ethers.Wallet(process.env.OWNER_PRIVATE_KEY, provider));
+        const validator = new ethers.Wallet(process.env.VALIDATOR_PRIVATE_KEY, provider);
 
         // deploy www3 share contract 
         const WWW3Shares = new ethers.ContractFactory(WWW3ShareContract.abi, WWW3ShareContract.bytecode, owner);
