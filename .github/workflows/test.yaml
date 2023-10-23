@@ -21,9 +21,11 @@ jobs:
           node-version: '18.x'
       - run: yarn --ignore-scripts
         shell: bash
-      - name: Create local node and deploy
-        run: |
-          yarn hardhat node &
-          yarn hardhat deploy-www3
+      - name: Start Hardhat node
+        run: yarn hardhat node &
+      - name: Wait for Hardhat node to start
+        run: sleep 10
+      - name: Deploy
+        run: yarn hardhat deploy-www3
       - name: Run Tests
         run: yarn hardhat test
