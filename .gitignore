@@ -1,4 +1,4 @@
-node_modules
+node_modules/
 .env
 typechain
 typechain-types
@@ -6,5 +6,5 @@ typechain-types
 .vscode
 # Hardhat files
 cache
-coverage
+coverage/
 

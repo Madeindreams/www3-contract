@@ -14,7 +14,6 @@ contract WorldWideWeb3 is Ownable, EIP712Message {
 
     event Signer(address account, uint256 tier, bytes signature);
     event Mint(address account, uint256 id);
-    
 
     constructor(
         string memory _name,
@@ -70,18 +69,14 @@ contract WorldWideWeb3 is Ownable, EIP712Message {
         } else {
             require(msg.value == tierPrice[tier], "Incorrect price for tier");
             trust[msg.sender] += msg.value;
-            if(tier == 3){
+            if (tier == 3) {
                 premiumAccount[msg.sender] = true;
             }
         }
 
-         (bool sent, ) = shareHoldingContract.call{value: msg.value}("");
+        (bool sent, ) = shareHoldingContract.call{value: msg.value}("");
         require(sent, "Failed to send Ether");
 
         emit Signer(msg.sender, tier, signature);
     }
-
-
-
-
 }
