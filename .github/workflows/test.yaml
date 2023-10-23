@@ -30,6 +30,8 @@ jobs:
         run: yarn hardhat deploy-www3
       - name: Run Tests
         run: yarn hardhat test
+      - name: Run coverage
+        run: yarn hardhat coverage
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
 
