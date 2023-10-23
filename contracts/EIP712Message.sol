@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.21;
 
 import "../node_modules/@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 import "../node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol";

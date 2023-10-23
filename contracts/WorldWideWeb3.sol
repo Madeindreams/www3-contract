@@ -1,38 +1,35 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.21;
 
 import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import "./EIP712Message.sol";
-import "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-
-contract WorldWideWeb3 is  Ownable, ERC20, EIP712Message{
-
+contract WorldWideWeb3 is Ownable, EIP712Message {
     address public validator;
-    bool public mintStarted;
 
-    mapping(address => uint256) public frensTrust;
+   
+    mapping(address => uint256) public trust;
     mapping(uint256 => uint256) public tierPrice;
+    mapping(address => bool) public premiumAccount;
+    address payable shareHoldingContract;
 
     event Signer(address account, uint256 tier, bytes signature);
-    event Minter(address account, uint256 amount);
-    event MintStarted(bool started);
+    event Mint(address account, uint256 id);
+    
 
     constructor(
         string memory _name,
         string memory _version,
         address _validator,
-        string memory _tokenName,
-        string memory _tokenSymbol
-    )
-        EIP712Message(_name, _version)
-        ERC20(_tokenName, _tokenSymbol){
+        address _shareHoldingContract
+    ) EIP712Message(_name, _version) {
+        tierPrice[1] = 0;
+        tierPrice[2] = 3000000000000000;
+        tierPrice[3] = 300000000000000000;
 
-            tierPrice[1] = 3000000000000000;
-            tierPrice[2] = 30000000000000000;
-            tierPrice[3] = 300000000000000000;
+        validator = _validator;
 
-            validator = _validator;
+        shareHoldingContract = payable(_shareHoldingContract);
     }
 
     function submitMessage(
@@ -44,36 +41,48 @@ contract WorldWideWeb3 is  Ownable, ERC20, EIP712Message{
         bytes memory signature,
         bytes memory validatorSignature
     ) public payable {
-        require(validateMessage(message, latitude, longitude, deadline, tier, signature) == msg.sender, "Invalid signature");
-        require(validateMessage(message, latitude, longitude, deadline, tier, validatorSignature) == validator, "Invalid validator signature");
+        require(
+            validateMessage(
+                message,
+                latitude,
+                longitude,
+                deadline,
+                tier,
+                signature
+            ) == msg.sender,
+            "Invalid signature"
+        );
+        require(
+            validateMessage(
+                message,
+                latitude,
+                longitude,
+                deadline,
+                tier,
+                validatorSignature
+            ) == validator,
+            "Invalid validator signature"
+        );
         require(tier > 0 && tier < 4, "invalid tier");
         require(block.timestamp < deadline, "passed deadline");
 
-        if(!mintStarted){
-            require(msg.value == tierPrice[tier],"incorrect price for tier");
-            frensTrust[msg.sender] += msg.value;
+        if (premiumAccount[msg.sender]) {
+            // the account is premium
         } else {
-            _burn(msg.sender, tierPrice[tier]);
+            require(msg.value == tierPrice[tier], "incorrect price for tier");
+            trust[msg.sender] += msg.value;
+            if(tier == 3){
+                premiumAccount[msg.sender] = true;
+            }
         }
+
+         (bool sent, ) = shareHoldingContract.call{value: msg.value}("");
+        require(sent, "Failed to send Ether");
 
         emit Signer(msg.sender, tier, signature);
     }
 
-    function startMint() public onlyOwner {
-        mintStarted = true;
-
-        emit MintStarted(mintStarted);
-    }
 
 
-    function mintTrust() public {
-        address recipient = _msgSender();
-        require(mintStarted, "Mint not started yet");
-        uint amountToMint = frensTrust[recipient];
-        frensTrust[recipient] = 0;
-        _mint(recipient, amountToMint);
-
-        emit Minter(recipient, amountToMint);
-    }
 
 }
