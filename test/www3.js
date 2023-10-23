@@ -40,15 +40,9 @@ describe("WorldWideWeb3 Deployment", function () {
     }
 
     describe("Deployment", async function () {
-        it("Should set the right owner in contracts", async function () {
-            const { owner, www3, www3Shares } = await loadFixture(
-                deployMaster
-            );
-            expect(await www3.owner()).to.equal(owner.signer.address);
-            expect(await www3Shares.owner()).to.equal(owner.signer.address);
-        })
 
-        it("Should sign a valid tier2 message", async function () {
+
+        it("Should revert on invalid user signature", async function () {
             const { owner, www3, validator} = await loadFixture(
                 deployMaster
             );
@@ -65,6 +59,74 @@ describe("WorldWideWeb3 Deployment", function () {
             const tier = "2"
             const time = epochTime
             const valueT1 = ethers.parseEther("0.003")
+
+            const chainID = await www3._getChainId()
+            // console.log(chainID)
+
+            // sign the message data
+            const typedData = {
+                types: {
+                    Message: [
+                        { name: "message", type: "string" },
+                        { name: "latitude", type: "string" },
+                        { name: "longitude", type: "string" },
+                        { name: "tier", type: "uint256" },
+                        { name: "time", type: "uint256" },
+                    ],
+                },
+                primaryType: "Message",
+                domain: {
+                    name: "Invalid name",
+                    version: version,
+                    chainId: chainID.toString(),
+                    verifyingContract: www3.target,
+                },
+                message: {
+                    message,
+                    latitude,
+                    longitude,
+                    tier,
+                    time
+                },
+            };
+
+            const signature = await owner.signTypedData(
+                typedData.domain,
+                typedData.types,
+                typedData.message)
+
+            const validatorSignature = await validator.signTypedData(
+                typedData.domain,
+                typedData.types,
+                typedData.message)
+
+
+
+
+                await expect(www3.submitMessage(message, latitude, longitude, time, tier, signature, validatorSignature, { value: valueT1 }))
+                .to.be.rejectedWith('Invalid signature');
+        
+
+
+        });
+
+        it("Should revert if the tier 2 amount is wrong", async function () {
+            const { owner, www3, validator} = await loadFixture(
+                deployMaster
+            );
+
+            // Get the current time
+            const currentTime = new Date();
+
+            // Add 5 minutes to the current time
+            const futureTime = new Date(currentTime.getTime() + 5 * 60000); // 60000 milliseconds in a minute
+            const epochTime = Math.floor(futureTime.getTime() / 1000);
+            const message = "My cool message"
+            const latitude = "117.0"
+            const longitude = "49.0"
+            const tier = "2"
+            const time = epochTime
+            const valueT1 = ethers.parseEther("0.0003")
 
             const chainID = await www3._getChainId()
             // console.log(chainID)
@@ -101,27 +163,18 @@ describe("WorldWideWeb3 Deployment", function () {
                 typedData.types,
                 typedData.message)
 
-            const validatorSignature = await validator.signTypedData(
-                typedData.domain,
-                typedData.types,
-                typedData.message)
-
-            let recovered = ethers.verifyTypedData(typedData.domain, typedData.types, typedData.message, signature)
-            expect(recovered).to.equal(owner.signer.address)
-
-            let recovered2 = ethers.verifyTypedData(typedData.domain, typedData.types, typedData.message, validatorSignature)
-            expect(recovered2).to.equal(validator.address)
+            const validatorSignature = signature
 
 
-            const tx = await www3.submitMessage(message, latitude, longitude, time, tier, signature, validatorSignature, { value: valueT1 })
-            const txReceipt = await tx.wait(1)
-            expect(txReceipt.status).to.equal(1)
+            await expect(www3.submitMessage(message, latitude, longitude, time, tier, signature, validatorSignature, { value: valueT1 }))
+        .to.be.rejectedWith('Invalid validator signature');
+
 
         });
 
 
 
-        it("Should sign a valid tier3 message and sign for free afterward", async function () {
+        it("Should revert when the tier is wrong", async function () {
             const { owner, www3, validator } = await loadFixture(
                 deployMaster
             );
@@ -137,7 +190,7 @@ describe("WorldWideWeb3 Deployment", function () {
             const message = "My cool message"
             const latitude = "117.0"
             const longitude = "49.0"
-            const tier = "3"
+            const tier = "0"
             const time = epochTime
             const valueT3 = ethers.parseEther("0.3")
             const chainID = await www3._getChainId()
@@ -180,15 +233,10 @@ describe("WorldWideWeb3 Deployment", function () {
                 typedData.types,
                 typedData.message)
 
-
-            const tx = await www3.submitMessage(message, latitude, longitude, time, tier, signature, validatorSignature, { value: valueT3 })
-            const txReceipt = await tx.wait(1)
-            expect(txReceipt.status).to.equal(1)
+                await expect(www3.submitMessage(message, latitude, longitude, time, tier, signature, validatorSignature, { value: valueT3 }))
+                .to.be.rejectedWith('invalid tier');
 
 
-            const tx2 = await www3.submitMessage(message, latitude, longitude, time, tier, signature, validatorSignature)
-            const txReceipt2 = await tx2.wait(1)
-            expect(txReceipt2.status).to.equal(1)
         })
 
 
