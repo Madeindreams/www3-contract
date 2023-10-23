@@ -18,6 +18,7 @@
     "@nomiclabs/hardhat-etherscan": "^3.1.7",
     "@openzeppelin/contracts": "^4.8.3",
     "dotenv": "^16.0.3",
+    "ganache-cli": "^6.12.2",
     "hardhat": "^2.18.2",
     "hardhat-coverage": "^0.9.19"
   },

@@ -24,7 +24,8 @@ describe("WorldWideWeb3 Deployment", function () {
     async function deployMaster() {
         // Contracts are deployed using the first signer/account by default
         const provider = new ethers.JsonRpcProvider(process.env.RPC);
-        const owner = new NonceManager(new ethers.Wallet(process.env.OWNER_PRIVATE_KEY, provider));
+        const owner = await provider.getSigner()
+        // const owner = new NonceManager(new ethers.Wallet(process.env.OWNER_PRIVATE_KEY, provider));
         const validator = new ethers.Wallet(process.env.VALIDATOR_PRIVATE_KEY, provider);
 
         // deploy www3 share contract 
