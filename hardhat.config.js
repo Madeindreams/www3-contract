@@ -1,6 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox");
 require('dotenv').config();
-require("hardhat-gas-reporter");
 require("./tasks/deployment.js");
 require('solidity-coverage');
 
@@ -23,10 +22,6 @@ module.exports = {
     etherscan: {
         apiKey: process.env.ETHERSCAN_API_KEY,
 
-    },
-    gasReporter: {
-      enabled: true,
-      src:"./contracts"
     },
   solidity: "0.8.21"
 };
