@@ -63,12 +63,12 @@ contract WorldWideWeb3 is Ownable, EIP712Message {
             "Invalid validator signature"
         );
         require(tier > 0 && tier < 4, "invalid tier");
-        require(block.timestamp < deadline, "passed deadline");
+        require(block.timestamp < deadline, "Passed the deadline");
 
         if (premiumAccount[msg.sender]) {
             // the account is premium
         } else {
-            require(msg.value == tierPrice[tier], "incorrect price for tier");
+            require(msg.value == tierPrice[tier], "Incorrect price for tier");
             trust[msg.sender] += msg.value;
             if(tier == 3){
                 premiumAccount[msg.sender] = true;
