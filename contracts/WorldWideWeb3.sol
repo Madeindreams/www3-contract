@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
 import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
@@ -7,7 +7,6 @@ import "./EIP712Message.sol";
 contract WorldWideWeb3 is Ownable, EIP712Message {
     address public validator;
 
-   
     mapping(address => uint256) public trust;
     mapping(uint256 => uint256) public tierPrice;
     mapping(address => bool) public premiumAccount;
