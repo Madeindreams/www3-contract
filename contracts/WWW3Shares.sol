@@ -21,9 +21,10 @@ contract WWW3Shares is Ownable, ReentrancyGuard, ERC20 {
         uint256 _maxAmountOfShares,
         uint256 _sharePrice,
         uint256 _privateSellAmount,
-        uint256 _vestingPeriod
+        uint256 _vestingPeriod,
+        address _dev
     ) ERC20(_name, _symbol) {
-        developer = payable(_msgSender());
+        developer = payable(_dev);
         maxAmountOfShares = _maxAmountOfShares;
         initialSharePrice = _sharePrice;
         _mint(_msgSender(), _privateSellAmount);
@@ -55,13 +56,17 @@ contract WWW3Shares is Ownable, ReentrancyGuard, ERC20 {
 
     function buySharesAfterVestingEnds(uint256 amount) internal {
         (uint256 actualBalance, uint256 availableShare) = availableShares();
+          if (address(this).balance < totalSupply()) {
+            amount = amount / 1e18;
+        }
+        console.log(msg.value, "vs", (amount * currentShareValue(msg.value)));
         require(
-            msg.value == (amount * currentShareValue()) / 1e18,
+            msg.value == (amount * currentShareValue(msg.value)),
             "Invalid amount of ether"
         );
         require(amount <= availableShare, "Amount exceeding available supply");
         require(
-            msg.value == currentShareValue() * amount,
+            msg.value == currentShareValue(msg.value) * amount,
             "Invalid amount of ether"
         );
 
@@ -79,14 +84,12 @@ contract WWW3Shares is Ownable, ReentrancyGuard, ERC20 {
     function sellShares(uint256 amount) public nonReentrant {
         require(block.number >= vestingPeriodEnd, "Vesting period is not over");
         require(amount >= 1 ether, "Amount must be at least 1 share");
-        console.log(allowance(msg.sender, address(this)));
-        console.log(msg.sender);
         transferFrom(_msgSender(), address(this), amount);
 
         if (address(this).balance < totalSupply()) {
             amount = amount / 1e18;
         }
-        uint256 returnedAmount = currentShareValue() * amount;
+        uint256 returnedAmount = currentShareValue(0) * amount;
 
         if (address(this).balance < returnedAmount) {
             returnedAmount = address(this).balance;
@@ -106,9 +109,9 @@ contract WWW3Shares is Ownable, ReentrancyGuard, ERC20 {
         return (actualBalance, availableShare);
     }
 
-    function currentShareValue() public view returns (uint256) {
+    function currentShareValue(uint256 incomingEther) public view returns (uint256) {
         uint256 totalSup = totalSupply();
-        uint256 balance = address(this).balance;
+        uint256 balance = address(this).balance - incomingEther;
 
         if (totalSup == 0 || balance == 0) {
             // Avoid division by zero error, return 0 in these cases

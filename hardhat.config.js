@@ -4,6 +4,7 @@ require("./tasks/deployment.js");
 require('solidity-coverage');
 require("hardhat-gas-reporter");
 
+
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
     defaultNetwork: "hardhat",
