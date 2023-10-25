@@ -4,7 +4,10 @@
   "description": "Smart contract for the world wide web3",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:local": "./node_modules/.bin/hardhat --config hardhat.config.js node",
+    "deploy:local": "./node_modules/.bin/hardhat --config hardhat.config.js deploy",
+    "test:local": "./node_modules/.bin/hardhat --config hardhat.config.local.js test",
+    "compile:local": "./node_modules/.bin/hardhat --config hardhat.config.js compile"
   },
   "repository": "git+https://github.com/Madeindreams/www3-contract.git",
   "author": "Ian Decentralize",
