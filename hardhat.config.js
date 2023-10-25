@@ -1,8 +1,10 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("@nomicfoundation/hardhat-chai-matchers");
 require('dotenv').config();
 require("./tasks/deployment.js");
 require('solidity-coverage');
 require("hardhat-gas-reporter");
+
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -11,9 +13,9 @@ module.exports = {
       hardhat: {
         mining: {
           auto: true,
-          interval: 5000
+          // interval: 5000
         },
-      }
+      },
     },
     paths: {
     sources: "./contracts",

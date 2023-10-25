@@ -6,8 +6,6 @@ pragma solidity ^0.8.0;
  * @dev Interface of the ERC20 standard as defined in the EIP.
  */
 interface IWorldWideWeb3 {
-
-
     /**
      * @dev Allow an acount to submit a message
      */
@@ -20,5 +18,4 @@ interface IWorldWideWeb3 {
         bytes memory signature,
         bytes memory validatorSignature
     ) external payable;
-    
 }
