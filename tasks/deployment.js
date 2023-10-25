@@ -23,7 +23,7 @@ task(
 
         // deploy www3 share contract 
         const WWW3Shares = new ethers.ContractFactory(WWW3ShareContract.abi, WWW3ShareContract.bytecode, owner);
-        const www3Shares = await WWW3Shares.deploy(tokenName, tokenSymbol, maxAmountOfShares, initialSharePrice, 
+        const www3Shares = await WWW3Shares.deploy(tokenName, tokenSymbol, name, maxAmountOfShares, initialSharePrice, 
             privateSellAmount, vestingPeriod, owner);
         console.log("share contract address", www3Shares.target)
 
