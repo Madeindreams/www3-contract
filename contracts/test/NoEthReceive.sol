@@ -9,7 +9,7 @@ contract NoEthReceive is Ownable  {
 
 
    
-    constructor() {
+    constructor() Ownable(msg.sender){
      
     }
 

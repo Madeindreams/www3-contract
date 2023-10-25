@@ -20,7 +20,7 @@ contract WorldWideWeb3 is Ownable, EIP712Message {
         string memory _version,
         address _validator,
         address _shareHoldingContract
-    ) EIP712Message(_name, _version) {
+    ) EIP712Message(_name, _version) Ownable(msg.sender) {
         tierPrice[1] = 0;
         tierPrice[2] = 3000000000000000;
         tierPrice[3] = 300000000000000000;

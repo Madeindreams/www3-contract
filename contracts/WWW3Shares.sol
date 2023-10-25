@@ -2,15 +2,16 @@
 pragma solidity 0.8.21;
 
 import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
-import "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../node_modules/@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import "../node_modules/@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "hardhat/console.sol";
 
-contract WWW3Shares is Ownable, ReentrancyGuard, ERC20 {
+contract WWW3Shares is Ownable, ReentrancyGuard, ERC20Permit {
     address payable public developer;
     uint256 public maxAmountOfShares;
     uint256 public initialSharePrice;
     uint256 public vestingPeriodEnd;
+    uint256 commonDenominator = 1e18;
 
     event ShareMinted(address to, uint256 amount);
     event ShareSold(address to, uint256 amount);
@@ -18,12 +19,13 @@ contract WWW3Shares is Ownable, ReentrancyGuard, ERC20 {
     constructor(
         string memory _name,
         string memory _symbol,
+        string memory _domain,
         uint256 _maxAmountOfShares,
         uint256 _sharePrice,
         uint256 _privateSellAmount,
         uint256 _vestingPeriod,
         address _dev
-    ) ERC20(_name, _symbol) {
+    ) ERC20(_name, _symbol) ERC20Permit(_domain) Ownable(_dev) {
         developer = payable(_dev);
         maxAmountOfShares = _maxAmountOfShares;
         initialSharePrice = _sharePrice;
@@ -35,12 +37,12 @@ contract WWW3Shares is Ownable, ReentrancyGuard, ERC20 {
         if (block.number >= vestingPeriodEnd) {
             buySharesAfterVestingEnds(amount);
         } else {
-            buySharesBoforeVestingEnds(amount);
+            buySharesBeforeVestingEnds(amount);
         }
         emit ShareMinted(_msgSender(), amount);
     }
 
-    function buySharesBoforeVestingEnds(uint256 amount) internal {
+    function buySharesBeforeVestingEnds(uint256 amount) internal {
         require(
             msg.value == (amount * initialSharePrice) / 1e18,
             "Invalid amount of ether"
@@ -55,19 +57,15 @@ contract WWW3Shares is Ownable, ReentrancyGuard, ERC20 {
     }
 
     function buySharesAfterVestingEnds(uint256 amount) internal {
-        (uint256 actualBalance, uint256 availableShare) = availableShares();
-          if (address(this).balance < totalSupply()) {
-            amount = amount / 1e18;
-        }
-        console.log(msg.value, "vs", (amount * currentShareValue(msg.value)));
+        (uint256 actualBalance, uint256 _availableShares) = availableShares();
+
         require(
-            msg.value == (amount * currentShareValue(msg.value)),
+            msg.value >= (amount * currentShareValue(msg.value) / commonDenominator),
             "Invalid amount of ether"
         );
-        require(amount <= availableShare, "Amount exceeding available supply");
         require(
-            msg.value == currentShareValue(msg.value) * amount,
-            "Invalid amount of ether"
+            amount <= _availableShares,
+            "Amount exceeding available supply"
         );
 
         if (amount <= actualBalance) {
@@ -83,17 +81,10 @@ contract WWW3Shares is Ownable, ReentrancyGuard, ERC20 {
 
     function sellShares(uint256 amount) public nonReentrant {
         require(block.number >= vestingPeriodEnd, "Vesting period is not over");
-        require(amount >= 1 ether, "Amount must be at least 1 share");
-        transferFrom(_msgSender(), address(this), amount);
+        require(balanceOf(_msgSender()) >= amount, "Insufficient Balance");
+        _transfer(_msgSender(), address(this), amount);
 
-        if (address(this).balance < totalSupply()) {
-            amount = amount / 1e18;
-        }
-        uint256 returnedAmount = currentShareValue(0) * amount;
-
-        if (address(this).balance < returnedAmount) {
-            returnedAmount = address(this).balance;
-        }
+        uint256 returnedAmount = currentShareValue(0) * amount / commonDenominator;
 
         (bool sent, ) = _msgSender().call{value: returnedAmount}("");
         require(sent, "Failed to send Ether");
@@ -105,28 +96,20 @@ contract WWW3Shares is Ownable, ReentrancyGuard, ERC20 {
         uint256 actualBalance = balanceOf(address(this));
         uint256 availableShare = actualBalance +
             (maxAmountOfShares - totalSupply());
-
         return (actualBalance, availableShare);
     }
 
-    function currentShareValue(uint256 incomingEther) public view returns (uint256) {
+    function currentShareValue(
+        uint256 incomingEther
+    ) public view returns (uint256) {
         uint256 totalSup = totalSupply();
         uint256 balance = address(this).balance - incomingEther;
-
         if (totalSup == 0 || balance == 0) {
             // Avoid division by zero error, return 0 in these cases
             return 0;
         }
 
-        // If balance is smaller than total supply, use appropriate scaling
-        if (balance < totalSup) {
-            // Scale the balance to match the 18 decimals of shares
-            uint256 scaledBalance = balance * (1e18);
-            return scaledBalance / totalSup;
-        } else {
-            // Balance is greater than or equal to total supply
-            return balance / totalSup;
-        }
+        return balance * commonDenominator / totalSup;
     }
 
     receive() external payable {}
