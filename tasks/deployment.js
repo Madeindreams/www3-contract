@@ -14,7 +14,7 @@ const initialSharePrice = ethers.parseEther("0.0006")
 const vestingPeriod = 2598800; // about one year in terms of block
 
 task(
-    "deploy-www3",
+    "deploy",
     "Deploy The contract",
     async (_, { network }) => {
         const provider = new ethers.JsonRpcProvider(process.env.RPC);
