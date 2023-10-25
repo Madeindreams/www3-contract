@@ -22,10 +22,6 @@ module.exports = {
     tests: "./test",
     artifacts: "./artifacts"
 },
-    etherscan: {
-        apiKey: process.env.ETHERSCAN_API_KEY,
-
-    },
     gasReporter: {
       enabled: true
     },
